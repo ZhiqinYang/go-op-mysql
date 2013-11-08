@@ -16,7 +16,6 @@ import (
     "container/list"
 )
 
-type funcType func(*sql.Rows) interface{}
 
 type DbOperation interface {
     Query(sql string, args ...interface{}) (map[interface{}]interface{}, error)
@@ -115,7 +114,7 @@ func (t *T) Insert(sql string, args ...interface{}) (int64, error) {
 
 
 //--------------------------------------------------------------------- Query  Result for List
-func  queryForList(stmt *sql.Stmt, fuvc funcType, args ...interface{}) (*list.List, error){
+func  queryForList(stmt *sql.Stmt, fuvc func (*sql.Rows) interface{}, args ...interface{}) (*list.List, error){
     row , err := stmt.Query(args ...)
 
     if nil != err {
@@ -124,16 +123,15 @@ func  queryForList(stmt *sql.Stmt, fuvc funcType, args ...interface{}) (*list.Li
     
     results := list.New()
     for row.Next() {
-        results.PushBack( fuvc(row))
+        results.PushBack( fuvc(row) )
     }
-
   return results, nil
 
 }
 
 
 
-func (t *T) QueryForList(sql string, fvnc funcType ,args ...interface{}) (*list.List, error){
+func (t *T) QueryForList(sql string, fvnc func (*sql.Rows) interface{} ,args ...interface{}) (*list.List, error){
 
     stmt , err:= t.tx.Prepare(sql)
 
@@ -146,7 +144,7 @@ func (t *T) QueryForList(sql string, fvnc funcType ,args ...interface{}) (*list.
 }
 
 
-func (template *SimpleDbTemplate) QueryForList(sql string, fvnc funcType, args ...interface{}) (*list.List, error){
+func (template *SimpleDbTemplate) QueryForList(sql string, fvnc func (*sql.Rows) interface{}, args ...interface{}) (*list.List, error){
 
     stmt , err := template.db.Prepare(sql)
 
@@ -166,7 +164,7 @@ func  query(stmt *sql.Stmt,  args ...interface{})([]map[string]interface{}, erro
         return nil, err
     }
 
-    cols,_ := row.Columns()
+//    cols,_ := row.Columns()
     
     //res :=nil
 
