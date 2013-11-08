@@ -10,7 +10,8 @@ package db
 
 import (
 	"fmt"
-	"testing"
+    "testing"
+    "database/sql"
 )
 
 func TestInsert(t *testing.T) {
@@ -49,8 +50,49 @@ func TestTransaction(t *testing.T) {
 	id,_ = tx.Insert(insert_sql, "zhan sani xxxr3x", 20, 100)
 
 	fmt.Println(id)
-	id ,_= tx.Insert(insert_sql, "zhan sani xxx 5x", 20, 100)
+
+    id ,_= tx.Insert(insert_sql, "zhan sani xxx 5x", 20, 100)
 
 	fmt.Println(id)
 	tx.Commit()
+}
+
+func TestQuery(t *testing.T) {
+    
+	ser := &Server{"backend", "192.168.1.117", 3306, "admin", "admin", nil}
+	db, _ := ser.GetDB()
+	template := &SimpleDbTemplate{db}
+	//tx ,_:= template.Begin()
+    
+    query_sql := "select name, age , level from user ";
+   
+    list ,err:= template.QueryForList(query_sql,rowMapper)
+
+    if(nil != err ) {
+        t.Error(err.Error())
+    }
+
+    for e := list.Front(); e != nil; e = e.Next() {
+        fmt.Println(e.Value);
+
+    }
+}
+
+
+type User struct {
+
+    Name string
+    Level int
+    Age int 
+}
+
+func  rowMapper( row * sql.Rows ) interface{} {
+
+    var name string 
+    var level int
+    var age int 
+    row.Scan(&name, &age, &level)
+
+    return User{name, level, age}
+
 }
